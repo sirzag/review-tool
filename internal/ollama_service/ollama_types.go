@@ -20,8 +20,10 @@ type property struct {
 }
 
 type items struct {
-	Type string `json:"type"`
-	Enum  []string `json:"enum,omitempty"`
+	Type       string              `json:"type"`
+	Enum       []string            `json:"enum,omitempty"`
+	Properties map[string]property `json:"properties,omitempty"`
+	Required   []string            `json:"required"`
 }
 
 type ollamaResponse struct {

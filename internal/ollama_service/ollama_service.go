@@ -30,27 +30,11 @@ func (s *OllamaService) Prompt(ctx context.Context, prompt string) (*llm.LLMResp
 		return nil, fmt.Errorf("prompt is empty")
 	}
 
-	allowedFilesToRead, ok := ctx.Value("allowedFilesToRead").([]string)
-	if !ok {
-		fmt.Println("allowedFilesToRead is not set in context")
-		allowedFilesToRead = []string{}
-	} else {
-		fmt.Printf("allowedFilesToRead are restricted to %v \n", allowedFilesToRead)
-	}
-
 	reqBody := ollamaRequest{
 		Model:  string(s.model),
 		Prompt: prompt,
 		Stream: false,
-		Format: formatSpec{
-			Type: "object",
-			Properties: map[string]property{
-				"review": {
-					Type: "string",
-				},
-			},
-			Required: []string{"review"},
-		},
+		Format: LLMResponseFormat,
 	}
 
 	jsonBody, err := json.Marshal(reqBody)
@@ -67,23 +51,50 @@ func (s *OllamaService) Prompt(ctx context.Context, prompt string) (*llm.LLMResp
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
-	req.Header.Set("Content-Type", "application/json")
 
-	resp, err := s.client.Do(req)
+	req.Header.Set("Content-Type", "application/json")
+	res, err := s.client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to make request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer res.Body.Close()
 
 	var ollamaResp ollamaResponse
-	if err := json.NewDecoder(resp.Body).Decode(&ollamaResp); err != nil {
+	if err := json.NewDecoder(res.Body).Decode(&ollamaResp); err != nil {
 		return nil, fmt.Errorf("failed to decode response: %w", err)
 	}
 
-	llmResp := &llm.LLMResponse{}
+	llmResp := llm.LLMResponse{}
 	json.Unmarshal([]byte(ollamaResp.Response), &llmResp)
 
-	// Here we'll need to parse the response text into our LLMResponse structure
-	// For now just returning the raw response
-	return llmResp, nil
+	return &llmResp, nil
+}
+
+var LLMResponseFormat = formatSpec{
+	Type: "object",
+	Properties: map[string]property{
+		"observations": {
+			Type: "array",
+			Items: &items{
+				Type: "object",
+				Properties: map[string]property{
+					"type": {
+						Type: "string",
+						Enum: []string{"ISSUE", "STYLE", "IMPROVEMENT", "CONSISTENCY"},
+					},
+					"description": {
+						Type: "string",
+					},
+					"suggestion": {
+						Type: "string",
+					},
+					"lines": {
+						Type: "string",
+					},
+				},
+				Required: []string{"type", "description", "suggestion", "lines"},
+			},
+		},
+	},
+	Required: []string{"observations"},
 }

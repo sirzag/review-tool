@@ -7,8 +7,8 @@ type LLMModel string
 
 const (
 	Codellama  LLMModel = "codellama"
-	Llama3     LLMModel = "llama3"
-	DeepseekR1 LLMModel = "deepseek-r1"
+	Llama3     LLMModel = "llama3.1"
+	Qwen       LLMModel = "qwen2.5"
 )
 
 const (
@@ -17,7 +17,14 @@ const (
 )
 
 type LLMResponse struct {
-	Review string `json:"review,omitempty"`
+	Observations []Observation `json:"observations,omitempty"`
+}
+
+type Observation struct {
+	Type        string `json:"type"`
+	Description string `json:"description"`
+	Suggestion  string `json:"suggestion"`
+	Lines       string `json:"lines"`
 }
 
 type LLM interface {

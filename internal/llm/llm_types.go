@@ -6,7 +6,7 @@ type AnalysisStatus string
 type LLMModel string
 
 const (
-	Codellama  LLMModel = "codellama"
+	Codellama  LLMModel = "codellama:13b"
 	Llama3     LLMModel = "llama3.1"
 	Qwen       LLMModel = "qwen2.5"
 )

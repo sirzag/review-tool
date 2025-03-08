@@ -36,7 +36,7 @@ func main() {
 	cwd, _ := os.Getwd()
 	llmService := ollama_service.New(llm.LLMConfig{
 		BaseURL: "http://localhost:11434",
-		Model:   llm.Qwen,
+		Model:   llm.Codellama,
 	})
 
 	for i, diff := range diffs {
